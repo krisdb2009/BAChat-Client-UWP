@@ -7,8 +7,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Background="{ThemeResource SystemControlChromeHighAcrylicWindowMediumBrush}" RequestedTheme="Dark">
-        <Rectangle HorizontalAlignment="Stretch" Height="32" VerticalAlignment="Top" Fill="{ThemeResource SystemControlChromeHighAcrylicElementMediumBrush }"/>
-        <TextBlock HorizontalAlignment="Center" Margin="0,5,0,0" Text="BA Chat" TextWrapping="Wrap" VerticalAlignment="Top"/>
+    <Grid Background="{ThemeResource SystemControlChromeHighAcrylicWindowMediumBrush}">
+        <Rectangle HorizontalAlignment="Stretch" Height="33" VerticalAlignment="Top" Fill="{ThemeResource SystemControlChromeHighAcrylicElementMediumBrush }"/>
+        <TextBlock HorizontalAlignment="Center" Margin="0,7,0,0" Text="BA Chat" TextWrapping="Wrap" VerticalAlignment="Top"/>
     </Grid>
 </Page>
