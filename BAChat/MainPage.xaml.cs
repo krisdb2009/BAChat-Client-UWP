@@ -1,6 +1,7 @@
 ﻿using Windows.ApplicationModel.Core;
 using Windows.UI;
 using Windows.UI.ViewManagement;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -19,8 +20,13 @@ namespace BAChat
             ApplicationViewTitleBar titleBar = ApplicationView.GetForCurrentView().TitleBar;
             titleBar.ButtonBackgroundColor = Colors.Transparent;
             titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
+            Window.Current.SetTitleBar(TitleBar);
+            MainNavigationView.IsPaneOpen = true;
         }
 
-
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            MainNavigationView.IsPaneOpen = true;
+        }
     }
 }

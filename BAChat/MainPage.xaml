@@ -8,7 +8,24 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource SystemControlChromeHighAcrylicWindowMediumBrush}">
-        <Rectangle HorizontalAlignment="Stretch" Height="33" VerticalAlignment="Top" Fill="{ThemeResource SystemControlChromeHighAcrylicElementMediumBrush }"/>
-        <TextBlock HorizontalAlignment="Center" Margin="0,7,0,0" Text="BA Chat" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Grid x:Name="TitleBar" HorizontalAlignment="Stretch" Height="32" VerticalAlignment="Top" Background="{ThemeResource SystemControlChromeHighAcrylicElementMediumBrush }" RequestedTheme="Light">
+             <TextBlock HorizontalAlignment="Center" Margin="0,7,0,0" Text="BA Chat" TextWrapping="Wrap" VerticalAlignment="Top" RequestedTheme="Light"/>
+        </Grid>
+
+        <Button Style="{StaticResource ButtonRevealStyle}" Content="&#xE700;" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Segoe MDL2 Assets" Height="32" RequestedTheme="Light" Background="#00000000" Click="Button_Click"/>
+        <NavigationView x:Name="MainNavigationView"  HorizontalAlignment="Left" VerticalAlignment="Stretch" RequestedTheme="Light" IsPaneToggleButtonVisible="False" IsSettingsVisible="True" >
+            <NavigationView.MenuItems>
+                <NavigationViewItem Content="Home" Tag="home">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE10F;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItemSeparator/>
+                <NavigationViewItemHeader Content="Main pages"/>
+                <NavigationViewItem Icon="AllApps" Content="Apps" Tag="apps"/>
+                <NavigationViewItem Icon="Video" Content="Games" Tag="games"/>
+                <NavigationViewItem Icon="Audio" Content="Music" Tag="music"/>
+            </NavigationView.MenuItems>
+        </NavigationView>
     </Grid>
 </Page>
