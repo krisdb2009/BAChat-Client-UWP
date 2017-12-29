@@ -1,5 +1,6 @@
 ﻿using Windows.ApplicationModel.Core;
 using Windows.UI;
+using Windows.UI.Core;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -13,20 +14,50 @@ namespace BAChat
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        public ApplicationViewTitleBar titleBar = ApplicationView.GetForCurrentView().TitleBar;
         public MainPage()
         {
             this.InitializeComponent();
             CoreApplication.GetCurrentView().TitleBar.ExtendViewIntoTitleBar = true;
-            ApplicationViewTitleBar titleBar = ApplicationView.GetForCurrentView().TitleBar;
             titleBar.ButtonBackgroundColor = Colors.Transparent;
             titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
+            titleBar.ButtonForegroundColor = Colors.White;
             Window.Current.SetTitleBar(TitleBar);
-            MainNavigationView.IsPaneOpen = true;
+            RequestedTheme = ElementTheme.Dark;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            MainNavigationView.IsPaneOpen = true;
+            MainNavigationView.SelectedItem = null;
+            if (MainNavigationView.IsPaneOpen)
+            {
+                MainNavigationView.IsPaneOpen = false;
+            }
+            else
+            {
+                MainNavigationView.IsPaneOpen = true;
+            }
+        }
+        private void MainNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        {
+            if (args.InvokedItem.Equals("Toggle Theme"))
+            {
+                if(RequestedTheme == ElementTheme.Dark)
+                {
+                    RequestedTheme = ElementTheme.Light;
+                    titleBar.ButtonForegroundColor = Colors.Black;
+                }
+                else
+                {
+                    RequestedTheme = ElementTheme.Dark;
+                    titleBar.ButtonForegroundColor = Colors.White;
+                }
+            }
+            if (args.InvokedItem.Equals("Login/Out"))
+            {
+                LoginPageFlyout.ShowAt(MainScreen);
+                LoginWebview.Navigate(new System.Uri("https://api.belowaverage.org/login/"));
+            }
         }
     }
 }

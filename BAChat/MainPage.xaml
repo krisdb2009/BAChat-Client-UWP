@@ -7,25 +7,40 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Background="{ThemeResource SystemControlChromeHighAcrylicWindowMediumBrush}">
-        <Grid x:Name="TitleBar" HorizontalAlignment="Stretch" Height="32" VerticalAlignment="Top" Background="{ThemeResource SystemControlChromeHighAcrylicElementMediumBrush }" RequestedTheme="Light">
-             <TextBlock HorizontalAlignment="Center" Margin="0,7,0,0" Text="BA Chat" TextWrapping="Wrap" VerticalAlignment="Top" RequestedTheme="Light"/>
-        </Grid>
-
-        <Button Style="{StaticResource ButtonRevealStyle}" Content="&#xE700;" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Segoe MDL2 Assets" Height="32" RequestedTheme="Light" Background="#00000000" Click="Button_Click"/>
-        <NavigationView x:Name="MainNavigationView"  HorizontalAlignment="Left" VerticalAlignment="Stretch" RequestedTheme="Light" IsPaneToggleButtonVisible="False" IsSettingsVisible="True" >
+    <Grid x:Name="MainScreen" Background="{ThemeResource SystemControlChromeHighAcrylicWindowMediumBrush}">
+        <Image HorizontalAlignment="Center" VerticalAlignment="Center" Source="Assets/bagray.png" Width="423" Height="423" Opacity="0.15"/>
+        <ScrollViewer HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FontFamily="Segoe UI">
+            <ScrollViewer.Resources>
+                <Style TargetType="ScrollBar">
+                    <Setter Property="Margin" Value="0,32,0,42"/>
+                </Style>
+            </ScrollViewer.Resources>
+            <RichTextBlock x:Name="ChatBox" Margin="5,32,5,42" FontFamily="Segoe UI" >
+            </RichTextBlock>
+        </ScrollViewer>
+        
+        <Rectangle VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="42" Fill="{ThemeResource SystemControlChromeHighAcrylicElementMediumBrush}" />
+        <TextBox HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5,0,100,5"/>
+        <Button Style="{StaticResource ButtonRevealStyle}" Content="Send" Width="90" Height="32" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,5" />
+        <NavigationView x:Name="MainNavigationView"  HorizontalAlignment="Left" VerticalAlignment="Stretch" IsPaneToggleButtonVisible="False" IsSettingsVisible="False" ItemInvoked="MainNavigationView_ItemInvoked" >
             <NavigationView.MenuItems>
-                <NavigationViewItem Content="Home" Tag="home">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE10F;"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
+                <NavigationViewItemSeparator Height="15"/>
+                <NavigationViewItemHeader Content="Settings"/>
                 <NavigationViewItemSeparator/>
-                <NavigationViewItemHeader Content="Main pages"/>
-                <NavigationViewItem Icon="AllApps" Content="Apps" Tag="apps"/>
-                <NavigationViewItem Icon="Video" Content="Games" Tag="games"/>
-                <NavigationViewItem Icon="Audio" Content="Music" Tag="music"/>
+                <NavigationViewItem Icon="Contact" Content="Login/Out"/>
+                <NavigationViewItem Icon="AllApps" Content="Change Channel"/>
+                <NavigationViewItem Icon="View" Content="Toggle Theme"/>
+                <NavigationViewItem Icon="Emoji2" Content="About BA Chat"/>
             </NavigationView.MenuItems>
         </NavigationView>
+        <Grid x:Name="TitleBar" HorizontalAlignment="Stretch" Height="32" VerticalAlignment="Top" Background="{ThemeResource SystemControlChromeHighAcrylicElementMediumBrush }">
+            <TextBlock HorizontalAlignment="Center" Margin="0,7,0,0" Text="BA Chat" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        </Grid>
+        <Button Background="Transparent" Style="{StaticResource ButtonRevealStyle}" Content="&#xE700;" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Segoe MDL2 Assets" Height="32" Click="Button_Click"/>
+        <Grid.Resources>
+            <Flyout x:Name="LoginPageFlyout" x:Key="LoginPageFlyout" Placement="Full" LightDismissOverlayMode="On">
+                <WebView x:Name="LoginWebview"/>
+            </Flyout>
+        </Grid.Resources>
     </Grid>
 </Page>
