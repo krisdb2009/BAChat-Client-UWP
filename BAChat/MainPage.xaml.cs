@@ -1,4 +1,8 @@
-﻿using Windows.ApplicationModel.Core;
+﻿using System.IO;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using Windows.ApplicationModel.Core;
 using Windows.UI;
 using Windows.UI.Core;
 using Windows.UI.ViewManagement;
@@ -15,6 +19,31 @@ namespace BAChat
     public sealed partial class MainPage : Page
     {
         public ApplicationViewTitleBar titleBar = ApplicationView.GetForCurrentView().TitleBar;
+
+        public string loginSessionID = "";
+
+        public string HTTPApiBaseURL = "https://api.belowaverage.org/v1/";
+
+        public async Task<string> HTTP_post_data(string URL, string EncodedData)
+        {
+            WebRequest request = WebRequest.Create(URL);
+            request.Method = "POST";
+            string postData = EncodedData;
+            byte[] byteArray = Encoding.UTF8.GetBytes(postData);
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.ContentLength = byteArray.Length;
+            Stream dataStream = request.GetRequestStream();
+            dataStream.Write(byteArray, 0, byteArray.Length);
+            dataStream.Close();
+            WebResponse response = await request.GetResponseAsync();
+            dataStream = response.GetResponseStream();
+            StreamReader reader = new StreamReader(dataStream);
+            string responseFromServer = reader.ReadToEnd();
+            reader.Close();
+            dataStream.Close();
+            response.Close();
+            return responseFromServer;
+        }
         public MainPage()
         {
             this.InitializeComponent();
@@ -38,7 +67,7 @@ namespace BAChat
                 MainNavigationView.IsPaneOpen = true;
             }
         }
-        private void MainNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        private async void MainNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
             if (args.InvokedItem.Equals("Toggle Theme"))
             {
@@ -55,8 +84,30 @@ namespace BAChat
             }
             if (args.InvokedItem.Equals("Login/Out"))
             {
-                LoginPageFlyout.ShowAt(MainScreen);
-                LoginWebview.Navigate(new System.Uri("https://api.belowaverage.org/login/"));
+                if (LoginWebView.Visibility == Visibility.Collapsed) {
+                    if(loginSessionID.Equals(""))
+                    {
+                        string messageID = await HTTP_post_data(HTTPApiBaseURL + "message/", "id=");
+                        LoginWebView.Navigate(new System.Uri("https://api.belowaverage.org/login/#" + messageID));
+                        LoginWebView.Visibility = Visibility.Visible;
+                        loginSessionID = await HTTP_post_data(HTTPApiBaseURL + "message/", "id=" + messageID);
+                        if(loginSessionID.Length == 32) //A key was returned possibly.
+                        {
+                            LoginWebView.Visibility = Visibility.Collapsed;
+                            ChatInputBox.Text = await HTTP_post_data(HTTPApiBaseURL + "chat/", "AUTH=" + loginSessionID);
+                        }
+                    }
+                    else
+                    {
+                        loginSessionID = "";
+                        //Possibly alert the user.
+                    }
+                    
+                }
+                else
+                {
+                    LoginWebView.Visibility = Visibility.Collapsed;
+                }
             }
         }
     }

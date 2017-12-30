@@ -20,8 +20,9 @@
         </ScrollViewer>
         
         <Rectangle VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="42" Fill="{ThemeResource SystemControlChromeHighAcrylicElementMediumBrush}" />
-        <TextBox HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5,0,100,5"/>
+        <TextBox x:Name="ChatInputBox" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5,0,100,5"/>
         <Button Style="{StaticResource ButtonRevealStyle}" Content="Send" Width="90" Height="32" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,5" />
+        <WebView x:Name="LoginWebView" Visibility="Collapsed" />
         <NavigationView x:Name="MainNavigationView"  HorizontalAlignment="Left" VerticalAlignment="Stretch" IsPaneToggleButtonVisible="False" IsSettingsVisible="False" ItemInvoked="MainNavigationView_ItemInvoked" >
             <NavigationView.MenuItems>
                 <NavigationViewItemSeparator Height="15"/>
@@ -37,10 +38,6 @@
             <TextBlock HorizontalAlignment="Center" Margin="0,7,0,0" Text="BA Chat" TextWrapping="Wrap" VerticalAlignment="Top"/>
         </Grid>
         <Button Background="Transparent" Style="{StaticResource ButtonRevealStyle}" Content="&#xE700;" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Segoe MDL2 Assets" Height="32" Click="Button_Click"/>
-        <Grid.Resources>
-            <Flyout x:Name="LoginPageFlyout" x:Key="LoginPageFlyout" Placement="Full" LightDismissOverlayMode="On">
-                <WebView x:Name="LoginWebview"/>
-            </Flyout>
-        </Grid.Resources>
+        
     </Grid>
 </Page>
