@@ -87,9 +87,10 @@ namespace BAChat
                 if (LoginWebView.Visibility == Visibility.Collapsed) {
                     if(loginSessionID.Equals(""))
                     {
+                        LoginWebView.NavigateToString("<h1 style=\"position:absolute;top:calc(50% - 20px);text-align:center;width:100%;font-family:Segoe UI;\">Waiting for login request...</h1>");
+                        LoginWebView.Visibility = Visibility.Visible;
                         string messageID = await HTTP_post_data(HTTPApiBaseURL + "message/", "id=");
                         LoginWebView.Navigate(new System.Uri("https://api.belowaverage.org/login/#" + messageID));
-                        LoginWebView.Visibility = Visibility.Visible;
                         loginSessionID = await HTTP_post_data(HTTPApiBaseURL + "message/", "id=" + messageID);
                         if(loginSessionID.Length == 32) //A key was returned possibly.
                         {
