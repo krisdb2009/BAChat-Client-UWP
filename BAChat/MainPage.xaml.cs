@@ -85,6 +85,17 @@ namespace BAChat
             return "<style>body {background-color:rgba(0,0,0,.5);}</style><h2 style=\"color:white;position:absolute;left:0px;top:calc(50% - 20px);text-align:center;width:100%;font-family:Segoe UI;\">"+message+"</h2>";
         }
 
+        public async void showDialog(string title, string message)
+        {
+            ContentDialog messageDialog = new ContentDialog
+            {
+                Title = title,
+                Content = message,
+                CloseButtonText = "Ok"
+            };
+            ContentDialogResult result = await messageDialog.ShowAsync();
+        }
+
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             MainNavigationView.SelectedItem = null;
@@ -122,24 +133,34 @@ namespace BAChat
                         LoginWebView.Visibility = Visibility.Visible;
                         string messageID = await HTTP_post_data(HTTPApiBaseURL + "message/", "id=");
                         LoginWebView.Navigate(new System.Uri("https://api.belowaverage.org/login/#" + messageID));
-                        loginSessionID = await HTTP_post_data(HTTPApiBaseURL + "message/", "id=" + messageID);
+                        try
+                        {
+                            loginSessionID = await HTTP_post_data(HTTPApiBaseURL + "message/", "id=" + messageID);
+                        }
+                        catch (WebException e)
+                        {
+                            if (LoginWebView.Visibility == Visibility.Visible) {
+                                showDialog("Login Session Error", e.Message);
+                                LoginWebView.Visibility = Visibility.Collapsed;
+                            }
+                        }
                         if (loginSessionID.Length == 32) //A key was returned possibly.
                         {
-                            LoginWebView.NavigateToString(gen_message_page("Testing session validity..."));
+                            //LoginWebView.NavigateToString(gen_message_page("Testing session validity..."));
                             append_line(DateTime.Now.ToString("h:mm:ss tt"), "server", await HTTP_post_data(HTTPApiBaseURL + "chat/", "AUTH=" + loginSessionID));
                             LoginWebView.Visibility = Visibility.Collapsed;
                         }
                     }
                     else
                     {
-                        LoginWebView.NavigateToString(gen_message_page("Sending logoff message..."));
-                        LoginWebView.Visibility = Visibility.Visible;
+                        //LoginWebView.NavigateToString(gen_message_page("Sending logoff message..."));
+                        //LoginWebView.Visibility = Visibility.Visible;
                         await HTTP_post_data(HTTPApiBaseURL + "message/", "AUTH=" + loginSessionID + "&logout");
-                        LoginWebView.NavigateToString(gen_message_page("Checking that the session has been terminated..."));
+                        //LoginWebView.NavigateToString(gen_message_page("Checking that the session has been terminated..."));
                         await HTTP_post_data(HTTPApiBaseURL + "message/", "AUTH=" + loginSessionID); //Check for 403
-                        LoginWebView.Visibility = Visibility.Collapsed;
+                        //LoginWebView.Visibility = Visibility.Collapsed;
                         loginSessionID = "";
-                        //Possibly alert the user.
+                        showDialog("Logout Succeeded", "You have been successfully logged out.");
                     }
                     
                 }
