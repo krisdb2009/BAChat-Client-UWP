@@ -22,7 +22,7 @@
         <Rectangle VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="42" Fill="{ThemeResource SystemControlChromeHighAcrylicElementMediumBrush}" />
         <TextBox x:Name="ChatInputBox" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5,0,100,5"/>
         <Button Style="{StaticResource ButtonRevealStyle}" Content="Send" Width="90" Height="32" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,5" />
-        <WebView x:Name="LoginWebView" Visibility="Collapsed" />
+        <WebView x:Name="LoginWebView" Visibility="Collapsed" DefaultBackgroundColor="Transparent" />
         <NavigationView x:Name="MainNavigationView"  HorizontalAlignment="Left" VerticalAlignment="Stretch" IsPaneToggleButtonVisible="False" IsSettingsVisible="False" ItemInvoked="MainNavigationView_ItemInvoked" >
             <NavigationView.MenuItems>
                 <NavigationViewItemSeparator Height="15"/>
