@@ -6,32 +6,31 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using Windows.Foundation;
 using Windows.UI;
-using Windows.UI.Core;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
-using Windows.UI.Xaml.Media;
-
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
 namespace BAChat
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class MainPage : Page
     {
         public ApplicationViewTitleBar titleBar = ApplicationView.GetForCurrentView().TitleBar;
+
+        public ContentDialog messageDialog = new messageContentDialog();
 
         public string loginSessionID = "";
 
         public string HTTPApiBaseURL = "https://api.belowaverage.org/v1/";
 
+        public bool mDialogIsOpen = false;
+
+        public ApplicationView currentApplicationView = ApplicationView.GetForCurrentView();
+
         public MainPage()
         {
             this.InitializeComponent();
-            ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(450, 300));
+            currentApplicationView.SetPreferredMinSize(new Size(450, 300));
             ApplicationView.PreferredLaunchViewSize = new Size(450, 600);
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
             CoreApplication.GetCurrentView().TitleBar.ExtendViewIntoTitleBar = true;
@@ -69,31 +68,98 @@ namespace BAChat
             Run run_time = new Run();
             Run run_username = new Run();
             Run run_text = new Run();
-            run_time.Text = "<"+time+" ";
+            run_time.Text = "<" + time + " ";
             paragraph.Inlines.Add(run_time);
             run_username.FontWeight = Windows.UI.Text.FontWeights.Bold;
             run_username.Text = username;
             paragraph.Inlines.Add(run_username);
             run_text.FontWeight = Windows.UI.Text.FontWeights.Normal;
-            run_text.Text = "> "+text;
+            run_text.Text = "> " + text;
             paragraph.Inlines.Add(run_text);
             ChatBox.Blocks.Add(paragraph);
         }
 
-        public string gen_message_page(string message)
+        public void hideDialog()
         {
-            return "<style>body {background-color:rgba(0,0,0,.5);}</style><h2 style=\"color:white;position:absolute;left:0px;top:calc(50% - 20px);text-align:center;width:100%;font-family:Segoe UI;\">"+message+"</h2>";
+            if (mDialogIsOpen)
+            {
+                messageDialog.Hide();
+                mDialogIsOpen = false;
+            }
         }
 
-        public async void showDialog(string title, string message)
+        public async void showDialog(string title, string message, bool showOK = true)
         {
-            ContentDialog messageDialog = new ContentDialog
+            messageDialog.RequestedTheme = RequestedTheme;
+            messageDialog.Title = title;
+            messageDialog.Content = message;
+            if(showOK)
             {
-                Title = title,
-                Content = message,
-                CloseButtonText = "Ok"
-            };
-            ContentDialogResult result = await messageDialog.ShowAsync();
+                messageDialog.CloseButtonText = "Ok";
+            }
+            else
+            {
+                messageDialog.CloseButtonText = "";
+            }
+            if (!mDialogIsOpen)
+            {
+                mDialogIsOpen = true;
+                await messageDialog.ShowAsync();
+            }
+        }
+
+        public void setTitle(string title = "")
+        {
+            currentApplicationView.Title = title;
+            if(title.Equals(""))
+            {
+                TitleBarText.Text = "BA Chat";
+            }
+            else
+            {
+                TitleBarText.Text = title + " - BA Chat";
+            }
+        }
+
+        public async void login()
+        {
+            showDialog("Login Session", "Generating Login Page...", false);
+            string messageID = await HTTP_post_data(HTTPApiBaseURL + "message/", "id=");
+            hideDialog();
+            LoginWebView.Navigate(new Uri("https://api.belowaverage.org/login/#" + messageID));
+            LoginWebView.Visibility = Visibility.Visible;
+            try
+            {
+                loginSessionID = await HTTP_post_data(HTTPApiBaseURL + "message/", "id=" + messageID);
+                LoginWebView.Visibility = Visibility.Collapsed;
+                LoginWebView.NavigateToString("");
+            }
+            catch (WebException e)
+            {
+                if (LoginWebView.Visibility == Visibility.Visible)
+                {
+                    showDialog("Login Session Error", e.Message);
+                    LoginWebView.Visibility = Visibility.Collapsed;
+                    LoginWebView.NavigateToString("");
+                }
+            }
+            if (loginSessionID.Length == 32) //A key was returned possibly.
+            {
+                showDialog("Login Session", "Retrieving login details...", false);
+                setTitle(await HTTP_post_data(HTTPApiBaseURL + "whoami/", "AUTH=" + loginSessionID));
+                hideDialog();
+            }
+        }
+
+        public async void logout()
+        {
+            showDialog("Login Session", "Sending logoff command to server...", false);
+            await HTTP_post_data(HTTPApiBaseURL + "chat/", "AUTH=" + loginSessionID + "&logout");
+            showDialog("Login Session", "Confirming logoff...", false);
+            await HTTP_post_data(HTTPApiBaseURL + "chat/", "AUTH=" + loginSessionID); //Check for 403
+            loginSessionID = "";
+            setTitle();
+            showDialog("Logout Succeeded", "You have been successfully logged out.");
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -108,11 +174,11 @@ namespace BAChat
                 MainNavigationView.IsPaneOpen = true;
             }
         }
-        private async void MainNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        private void MainNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
             if (args.InvokedItem.Equals("Toggle Theme"))
             {
-                if(RequestedTheme == ElementTheme.Dark)
+                if (RequestedTheme == ElementTheme.Dark)
                 {
                     RequestedTheme = ElementTheme.Light;
                     titleBar.ButtonForegroundColor = Colors.Black;
@@ -125,50 +191,27 @@ namespace BAChat
             }
             if (args.InvokedItem.Equals("Login/Out"))
             {
-                if (LoginWebView.Visibility == Visibility.Collapsed) {
-                    if(loginSessionID.Equals(""))
+                if (LoginWebView.Visibility == Visibility.Collapsed)
+                {
+                    if (loginSessionID.Equals(""))
                     {
-                        
-                        LoginWebView.NavigateToString(gen_message_page("Requesting login session..."));
-                        LoginWebView.Visibility = Visibility.Visible;
-                        string messageID = await HTTP_post_data(HTTPApiBaseURL + "message/", "id=");
-                        LoginWebView.Navigate(new System.Uri("https://api.belowaverage.org/login/#" + messageID));
-                        try
-                        {
-                            loginSessionID = await HTTP_post_data(HTTPApiBaseURL + "message/", "id=" + messageID);
-                        }
-                        catch (WebException e)
-                        {
-                            if (LoginWebView.Visibility == Visibility.Visible) {
-                                showDialog("Login Session Error", e.Message);
-                                LoginWebView.Visibility = Visibility.Collapsed;
-                            }
-                        }
-                        if (loginSessionID.Length == 32) //A key was returned possibly.
-                        {
-                            //LoginWebView.NavigateToString(gen_message_page("Testing session validity..."));
-                            append_line(DateTime.Now.ToString("h:mm:ss tt"), "server", await HTTP_post_data(HTTPApiBaseURL + "chat/", "AUTH=" + loginSessionID));
-                            LoginWebView.Visibility = Visibility.Collapsed;
-                        }
+                        login();
                     }
                     else
                     {
-                        //LoginWebView.NavigateToString(gen_message_page("Sending logoff message..."));
-                        //LoginWebView.Visibility = Visibility.Visible;
-                        await HTTP_post_data(HTTPApiBaseURL + "message/", "AUTH=" + loginSessionID + "&logout");
-                        //LoginWebView.NavigateToString(gen_message_page("Checking that the session has been terminated..."));
-                        await HTTP_post_data(HTTPApiBaseURL + "message/", "AUTH=" + loginSessionID); //Check for 403
-                        //LoginWebView.Visibility = Visibility.Collapsed;
-                        loginSessionID = "";
-                        showDialog("Logout Succeeded", "You have been successfully logged out.");
+                        logout();
                     }
-                    
+
                 }
                 else
                 {
                     LoginWebView.Visibility = Visibility.Collapsed;
                 }
             }
+        }
+
+        private void SendButton_Click(object sender, RoutedEventArgs e)
+        {
         }
     }
 }
