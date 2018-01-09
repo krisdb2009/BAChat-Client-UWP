@@ -156,10 +156,28 @@ namespace BAChat
             showDialog("Login Session", "Sending logoff command to server...", false);
             await HTTP_post_data(HTTPApiBaseURL + "chat/", "AUTH=" + loginSessionID + "&logout");
             showDialog("Login Session", "Confirming logoff...", false);
-            await HTTP_post_data(HTTPApiBaseURL + "chat/", "AUTH=" + loginSessionID); //Check for 403
+            bool isSuccess = false;
+            try
+            {
+                await HTTP_post_data(HTTPApiBaseURL + "chat/", "AUTH=" + loginSessionID);
+            }
+            catch (WebException e)
+            {
+                if(e.Status == WebExceptionStatus.ProtocolError)
+                {
+                    isSuccess = true;
+                }
+            }
+            if (isSuccess)
+            {
+                showDialog("Logout Succeeded", "You have been successfully logged out.");
+            }
+            else
+            {
+                showDialog("Logout Forced", "You have been forcefully logged out client side.");
+            }
             loginSessionID = "";
             setTitle();
-            showDialog("Logout Succeeded", "You have been successfully logged out.");
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
