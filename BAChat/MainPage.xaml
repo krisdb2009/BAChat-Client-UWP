@@ -6,9 +6,16 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-
     <Grid x:Name="MainScreen" Background="{ThemeResource SystemControlChromeHighAcrylicWindowMediumBrush}">
-        <Image HorizontalAlignment="Center" VerticalAlignment="Center" Source="Assets/bagray.png" Width="423" Height="423" Opacity="0.15"/>
+        <Rectangle >
+            <Rectangle.Fill>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#66000000" Offset="0"/>
+                    <GradientStop Color="#33FFFFFF" Offset="1"/>
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Image HorizontalAlignment="Center" VerticalAlignment="Center" Source="Assets/bagray.png" Width="200" Height="200" Opacity="0.15"/>
         <ScrollViewer HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FontFamily="Segoe UI">
             <ScrollViewer.Resources>
                 <Style TargetType="ScrollBar">
@@ -18,12 +25,11 @@
             <RichTextBlock x:Name="ChatBox" Margin="5,32,5,42" FontFamily="Segoe UI" >
             </RichTextBlock>
         </ScrollViewer>
-        
         <Rectangle VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="42" Fill="{ThemeResource SystemControlChromeHighAcrylicElementMediumBrush}" />
         <TextBox x:Name="ChatInputBox" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="5,0,100,5"/>
         <Button x:Name="SendButton" Style="{StaticResource ButtonRevealStyle}" Content="Send" Width="90" Height="32" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,5" Click="SendButton_Click" />
-        <WebView x:Name="LoginWebView" Visibility="Collapsed"/>
-        <NavigationView x:Name="MainNavigationView"  HorizontalAlignment="Left" VerticalAlignment="Stretch" IsPaneToggleButtonVisible="False" IsSettingsVisible="False" ItemInvoked="MainNavigationView_ItemInvoked" >
+        <WebView x:Name="LoginWebView" Visibility="Collapsed" DefaultBackgroundColor="Transparent"/>
+        <NavigationView x:Name="MainNavigationView" HorizontalAlignment="Left" VerticalAlignment="Stretch" IsSettingsVisible="False" ItemInvoked="MainNavigationView_ItemInvoked" IsPaneToggleButtonVisible="False" >
             <NavigationView.MenuItems>
                 <NavigationViewItemSeparator Height="15"/>
                 <NavigationViewItemHeader Content="Settings"/>

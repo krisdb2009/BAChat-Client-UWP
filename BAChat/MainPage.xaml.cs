@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -27,6 +28,8 @@ namespace BAChat
 
         public ApplicationView currentApplicationView = ApplicationView.GetForCurrentView();
 
+        public DispatcherTimer loginTimer = new DispatcherTimer();
+
         public MainPage()
         {
             this.InitializeComponent();
@@ -39,6 +42,10 @@ namespace BAChat
             titleBar.ButtonForegroundColor = Colors.White;
             Window.Current.SetTitleBar(TitleBar);
             RequestedTheme = ElementTheme.Dark;
+            loginTimer.Tick += LoginTimer_Tick;
+            loginTimer.Interval = new TimeSpan(0, 0, 1);
+            messageDialog.CloseButtonClick += MessageDialog_CloseButtonClick;
+            login();
         }
 
         public async Task<string> HTTP_post_data(string URL, string EncodedData)
@@ -49,6 +56,7 @@ namespace BAChat
             byte[] byteArray = Encoding.UTF8.GetBytes(postData);
             request.ContentType = "application/x-www-form-urlencoded";
             request.ContentLength = byteArray.Length;
+            request.Headers["origin"] = "https://login.belowaverage.org";
             Stream dataStream = request.GetRequestStream();
             dataStream.Write(byteArray, 0, byteArray.Length);
             dataStream.Close();
@@ -88,6 +96,11 @@ namespace BAChat
             }
         }
 
+        private void MessageDialog_CloseButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+            hideDialog();
+        }
+
         public async void showDialog(string title, string message, bool showOK = true)
         {
             messageDialog.RequestedTheme = RequestedTheme;
@@ -123,43 +136,44 @@ namespace BAChat
 
         public async void login()
         {
-            showDialog("Login Session", "Generating Login Page...", false);
-            string messageID = await HTTP_post_data(HTTPApiBaseURL + "message/", "id=");
-            hideDialog();
-            LoginWebView.Navigate(new Uri("https://api.belowaverage.org/login/#" + messageID));
+            LoginWebView.NavigateToString(
+                "<iframe style=\"" +
+                    "background-color:rgba(255,255,255,.8);" +
+                    "position:absolute;" +
+                    "top:0px;" +
+                    "left:0px;" +
+                    "width:100%;" +
+                    "height:100%;" +
+                    "border:0px;" +
+                "\" src=\"https://login.belowaverage.org/\"></iframe>" +
+                "<script src=\"https://static.belowaverage.org/js/auth.js\"></script>" +
+                "<script> function authToken() { return AUTH.token; } </script>"
+            );
             LoginWebView.Visibility = Visibility.Visible;
-            try
+            loginTimer.Start();
+        }
+
+        private async void LoginTimer_Tick(object sender, object e)
+        {
+            string token = await LoginWebView.InvokeScriptAsync("authToken", null);
+            if (token.Length == 32)
             {
-                loginSessionID = await HTTP_post_data(HTTPApiBaseURL + "message/", "id=" + messageID);
+                loginTimer.Stop();
+                loginSessionID = token;
                 LoginWebView.Visibility = Visibility.Collapsed;
-                LoginWebView.NavigateToString("");
-            }
-            catch (WebException e)
-            {
-                if (LoginWebView.Visibility == Visibility.Visible)
-                {
-                    showDialog("Login Session Error", e.Message);
-                    LoginWebView.Visibility = Visibility.Collapsed;
-                    LoginWebView.NavigateToString("");
-                }
-            }
-            if (loginSessionID.Length == 32) //A key was returned possibly.
-            {
-                showDialog("Login Session", "Retrieving login details...", false);
-                setTitle(await HTTP_post_data(HTTPApiBaseURL + "whoami/", "AUTH=" + loginSessionID));
-                hideDialog();
             }
         }
+
 
         public async void logout()
         {
             showDialog("Login Session", "Sending logoff command to server...", false);
-            await HTTP_post_data(HTTPApiBaseURL + "chat/", "AUTH=" + loginSessionID + "&logout");
+            await HTTP_post_data(HTTPApiBaseURL + "AUTH/", "AUTH=" + loginSessionID + "&logout");
             showDialog("Login Session", "Confirming logoff...", false);
             bool isSuccess = false;
             try
             {
-                await HTTP_post_data(HTTPApiBaseURL + "chat/", "AUTH=" + loginSessionID);
+                await HTTP_post_data(HTTPApiBaseURL + "AUTH/", "AUTH=" + loginSessionID);
             }
             catch (WebException e)
             {
@@ -192,8 +206,12 @@ namespace BAChat
                 MainNavigationView.IsPaneOpen = true;
             }
         }
-        private void MainNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        
+            
+
+        private async void MainNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
+            MainNavigationView.SelectedItem = null;
             if (args.InvokedItem.Equals("Toggle Theme"))
             {
                 if (RequestedTheme == ElementTheme.Dark)
@@ -224,12 +242,21 @@ namespace BAChat
                 else
                 {
                     LoginWebView.Visibility = Visibility.Collapsed;
+                    loginTimer.Stop();
                 }
+            }
+            if (args.InvokedItem.Equals("About BA Chat"))
+            {
+                
             }
         }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
         }
+
+
+
+        
     }
 }
