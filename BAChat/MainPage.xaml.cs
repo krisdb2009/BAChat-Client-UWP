@@ -45,7 +45,7 @@ namespace BAChat
             loginTimer.Tick += LoginTimer_Tick;
             loginTimer.Interval = new TimeSpan(0, 0, 1);
             messageDialog.CloseButtonClick += MessageDialog_CloseButtonClick;
-            login();
+            LoginServerMenu.Visibility = Visibility.Visible;
         }
 
         public async Task<string> HTTP_post_data(string URL, string EncodedData)
@@ -134,7 +134,7 @@ namespace BAChat
             }
         }
 
-        public async void login()
+        public void login()
         {
             LoginWebView.NavigateToString(
                 "<iframe style=\"" +
@@ -163,8 +163,7 @@ namespace BAChat
                 LoginWebView.Visibility = Visibility.Collapsed;
             }
         }
-
-
+        
         public async void logout()
         {
             showDialog("Login Session", "Sending logoff command to server...", false);
@@ -192,12 +191,13 @@ namespace BAChat
             }
             loginSessionID = "";
             setTitle();
+            LoginServerMenu.Visibility = Visibility.Visible;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             MainNavigationView.SelectedItem = null;
-            if (MainNavigationView.IsPaneOpen)
+            if (MainNavigationView.IsPaneOpen || loginSessionID == "")
             {
                 MainNavigationView.IsPaneOpen = false;
             }
@@ -209,7 +209,7 @@ namespace BAChat
         
             
 
-        private async void MainNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        private void MainNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
             MainNavigationView.SelectedItem = null;
             if (args.InvokedItem.Equals("Toggle Theme"))
@@ -225,19 +225,11 @@ namespace BAChat
                     titleBar.ButtonForegroundColor = Colors.White;
                 }
             }
-            if (args.InvokedItem.Equals("Login/Out"))
+            if (args.InvokedItem.Equals("Logout"))
             {
                 if (LoginWebView.Visibility == Visibility.Collapsed)
                 {
-                    if (loginSessionID.Equals(""))
-                    {
-                        login();
-                    }
-                    else
-                    {
                         logout();
-                    }
-
                 }
                 else
                 {
@@ -255,8 +247,20 @@ namespace BAChat
         {
         }
 
+        private void loginToBA_Click(object sender, RoutedEventArgs e)
+        {
+            LoginServerMenu.Visibility = Visibility.Collapsed;
+            login();
+        }
 
+        private void customServerLogin_Click(object sender, RoutedEventArgs e)
+        {
+            CustomServerMenu.Visibility = Visibility.Visible;
+        }
 
-        
+        private void custServBack_Click(object sender, RoutedEventArgs e)
+        {
+            CustomServerMenu.Visibility = Visibility.Collapsed;
+        }
     }
 }

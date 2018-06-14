@@ -34,7 +34,7 @@
                 <NavigationViewItemSeparator Height="15"/>
                 <NavigationViewItemHeader Content="Settings"/>
                 <NavigationViewItemSeparator/>
-                <NavigationViewItem Icon="Contact" Content="Login/Out"/>
+                <NavigationViewItem Icon="Contact" Content="Logout"/>
                 <NavigationViewItem Icon="AllApps" Content="Change Channel"/>
                 <NavigationViewItem Icon="View" Content="Toggle Theme"/>
                 <NavigationViewItem Icon="Emoji2" Content="About BA Chat"/>
@@ -44,5 +44,22 @@
             <TextBlock x:Name="TitleBarText" HorizontalAlignment="Center" Margin="0,7,0,0" Text="BA Chat" TextWrapping="Wrap" VerticalAlignment="Top"/>
         </Grid>
         <Button Background="Transparent" Style="{StaticResource ButtonRevealStyle}" Content="&#xE700;" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Segoe MDL2 Assets" Height="32" Click="Button_Click"/>
+        <Grid x:Name="LoginServerMenu" HorizontalAlignment="Stretch" Background="{ThemeResource SystemControlChromeHighAcrylicElementMediumBrush}" VerticalAlignment="Stretch" Margin="0,32,0,0" Visibility="Collapsed" >
+            <TextBlock HorizontalAlignment="Center" Text="Welcome to BA Chat!" VerticalAlignment="Top" Margin="0,200,0,0"/>
+            <Image HorizontalAlignment="Center" Height="100" Margin="0,60,0,0" VerticalAlignment="Top" Width="100" Source="Assets/bagray.png"/>
+            <Button x:Name="loginToBA" Style="{StaticResource ButtonRevealStyle}" Content="Login to BA" HorizontalAlignment="Center" Margin="0,286,0,0" VerticalAlignment="Top" Width="200" Click="loginToBA_Click"/>
+            <Button x:Name="customServerLogin" Style="{StaticResource ButtonRevealStyle}" Content="Login to a custom server" HorizontalAlignment="Center" Margin="0,350,0,0" VerticalAlignment="Top" Width="200" Click="customServerLogin_Click"/>
+            <HyperlinkButton HorizontalAlignment="Center" Margin="0,426,0,0" VerticalAlignment="Top">
+                <HyperlinkButton Content="Help with BA Chat" Margin="0,10,0,0" VerticalAlignment="Top"/>
+            </HyperlinkButton>
+        </Grid>
+        <Grid x:Name="CustomServerMenu" HorizontalAlignment="Stretch" Background="{ThemeResource SystemControlChromeHighAcrylicElementMediumBrush}" VerticalAlignment="Stretch" Margin="0,32,0,0" Visibility="Collapsed" >
+            <TextBlock HorizontalAlignment="Center" Text="Custom Server Settings" VerticalAlignment="Center" FontSize="24" Margin="0,-200,0,0"/>
+            <TextBox x:Name="custServAddress" HorizontalAlignment="Center" Text="" VerticalAlignment="Center" PlaceholderText="chatserver.example.com" Width="300" Margin="0,-50,0,0"/>
+            <TextBox x:Name="custServUsername" HorizontalAlignment="Center" Margin="-155,30,0,0" Text="" VerticalAlignment="Center" PlaceholderText="Username" Width="145"/>
+            <PasswordBox x:Name="custServPassword" HorizontalAlignment="Center" Margin="155,30,0,0" VerticalAlignment="Center" PlaceholderText="Password" Width="145"/>
+            <Button x:Name="custServBack" Content="Back" HorizontalAlignment="Center" Margin="-110,150,0,0" VerticalAlignment="Center" Width="100" Click="custServBack_Click"/>
+            <Button x:Name="custServLogin" Content="Login" HorizontalAlignment="Center" Margin="110,150,0,0" VerticalAlignment="Center" Width="100"/>
+        </Grid>
     </Grid>
 </Page>
