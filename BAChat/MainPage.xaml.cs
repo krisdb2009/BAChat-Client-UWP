@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Storage;
 using Windows.ApplicationModel.Core;
 using Windows.Foundation;
 using Windows.UI;
@@ -30,9 +31,11 @@ namespace BAChat
 
         public DispatcherTimer loginTimer = new DispatcherTimer();
 
+        public ApplicationDataContainer LocalSettings = ApplicationData.Current.LocalSettings;
+
         public MainPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
             currentApplicationView.SetPreferredMinSize(new Size(450, 300));
             ApplicationView.PreferredLaunchViewSize = new Size(450, 600);
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
@@ -41,11 +44,25 @@ namespace BAChat
             titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
             titleBar.ButtonForegroundColor = Colors.White;
             Window.Current.SetTitleBar(TitleBar);
-            RequestedTheme = ElementTheme.Dark;
             loginTimer.Tick += LoginTimer_Tick;
             loginTimer.Interval = new TimeSpan(0, 0, 1);
             messageDialog.CloseButtonClick += MessageDialog_CloseButtonClick;
-            LoginServerMenu.Visibility = Visibility.Visible;
+            if (LocalSettings.Values.ContainsKey("isLoggedIn") && (bool)LocalSettings.Values["isLoggedIn"])
+            {
+                login();
+            }
+            else
+            {
+                LoginServerMenu.Visibility = Visibility.Visible;
+            }
+            if (LocalSettings.Values.ContainsKey("theme") && (int)LocalSettings.Values["theme"] == 0)
+            {
+                RequestedTheme = ElementTheme.Light;
+            }
+            else
+            {
+                RequestedTheme = ElementTheme.Dark;
+            }
         }
 
         public async Task<string> HTTP_post_data(string URL, string EncodedData)
@@ -161,6 +178,7 @@ namespace BAChat
                 loginTimer.Stop();
                 loginSessionID = token;
                 LoginWebView.Visibility = Visibility.Collapsed;
+                LocalSettings.Values["isLoggedIn"] = true;
             }
         }
         
@@ -190,6 +208,7 @@ namespace BAChat
                 showDialog("Logout Forced", "You have been forcefully logged out client side.");
             }
             loginSessionID = "";
+            LocalSettings.Values["isLoggedIn"] = false;
             setTitle();
             LoginServerMenu.Visibility = Visibility.Visible;
         }
@@ -218,11 +237,13 @@ namespace BAChat
                 {
                     RequestedTheme = ElementTheme.Light;
                     titleBar.ButtonForegroundColor = Colors.Black;
+                    LocalSettings.Values["theme"] = 0;
                 }
                 else
                 {
                     RequestedTheme = ElementTheme.Dark;
                     titleBar.ButtonForegroundColor = Colors.White;
+                    LocalSettings.Values["theme"] = 1;
                 }
             }
             if (args.InvokedItem.Equals("Logout"))
