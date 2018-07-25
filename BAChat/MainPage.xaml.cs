@@ -179,6 +179,7 @@ namespace BAChat
                 loginSessionID = token;
                 LoginWebView.Visibility = Visibility.Collapsed;
                 LocalSettings.Values["isLoggedIn"] = true;
+                await WebSocketClient.Connect("localhost", false, 55475);
             }
         }
         
