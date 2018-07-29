@@ -12,6 +12,8 @@ using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
+using WebSocket4Net;
+using Windows.UI.Core;
 
 namespace BAChat
 {
@@ -21,13 +23,13 @@ namespace BAChat
 
         public ContentDialog messageDialog = new messageContentDialog();
 
-        public string loginSessionID = "";
+        public static string loginSessionID = "";
 
         public string HTTPApiBaseURL = "https://api.belowaverage.org/v1/";
 
         public bool mDialogIsOpen = false;
 
-        public ApplicationView currentApplicationView = ApplicationView.GetForCurrentView();
+        public static ApplicationView currentApplicationView = ApplicationView.GetForCurrentView();
 
         public DispatcherTimer loginTimer = new DispatcherTimer();
 
@@ -123,7 +125,7 @@ namespace BAChat
             messageDialog.RequestedTheme = RequestedTheme;
             messageDialog.Title = title;
             messageDialog.Content = message;
-            if(showOK)
+            if (showOK)
             {
                 messageDialog.CloseButtonText = "Ok";
             }
@@ -138,17 +140,20 @@ namespace BAChat
             }
         }
 
-        public void setTitle(string title = "")
+        public async void setTitle(string title = "")
         {
-            currentApplicationView.Title = title;
-            if(title.Equals(""))
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
-                TitleBarText.Text = "BA Chat";
-            }
-            else
-            {
-                TitleBarText.Text = title + " - BA Chat";
-            }
+                currentApplicationView.Title = title;
+                if (title.Equals(""))
+                {
+                    TitleBarText.Text = "BA Chat";
+                }
+                else
+                {
+                    TitleBarText.Text = title + " - BA Chat";
+                }
+            });
         }
 
         public void login()
@@ -179,10 +184,43 @@ namespace BAChat
                 loginSessionID = token;
                 LoginWebView.Visibility = Visibility.Collapsed;
                 LocalSettings.Values["isLoggedIn"] = true;
-                await WebSocketClient.Connect("localhost", false, 55475);
+                WebSocket ws = await WebSocketClient.Connect("localhost", false, 55475);
+                ws.MessageReceived += WSClient_MessageReceived;
             }
         }
-        
+
+        private void WSClient_MessageReceived(object sender, MessageReceivedEventArgs e)
+        {
+            if (Protocol.Receive.Login(e.Message, out string token))
+            {
+                if (token != null)
+                {
+                    loginSessionID = token;
+                }
+                Protocol.Send.Login(loginSessionID);
+                //Other Stuff Here
+            }
+            else if (Protocol.Receive.Init(e.Message, out string initUsername, out string channel))
+            {
+                if (channel == null)
+                {
+                    setTitle(initUsername);
+                }
+                else
+                {
+                    setTitle(channel + " - " + initUsername);
+                }
+            }
+            else if (Protocol.Receive.Join(e.Message))
+            {
+                //Close out of the current chat
+            }
+            else if (Protocol.Receive.Chat(e.Message, out string chatUsername, out string message))
+            {
+
+            }
+        }
+
         public async void logout()
         {
             showDialog("Login Session", "Sending logoff command to server...", false);

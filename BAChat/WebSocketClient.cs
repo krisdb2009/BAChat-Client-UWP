@@ -12,7 +12,7 @@ namespace BAChat
     class WebSocketClient
     {
         public static WebSocket WSClient = null;
-        public static Task<bool> Connect(string host, bool secure = false, int port = 0)
+        public static async Task<WebSocket> Connect(string host, bool secure = false, int port = 0)
         {
             string sPort = "";
             string scheme = "ws://";
@@ -24,29 +24,10 @@ namespace BAChat
             {
                 scheme = "wss://";
             }
-            WSClient = new WebSocket(scheme + host + sPort);
-            WSClient.MessageReceived += WSClient_MessageReceived;
-            WSClient.Closed += WSClient_Closed;
-            return WSClient.OpenAsync();
-        }
-
-        private static void WSClient_Closed(object sender, EventArgs e)
-        {
-           
-        }
-
-        private static void WSClient_MessageReceived(object sender, MessageReceivedEventArgs e)
-        {
-            
-        }
-
-        public static void Login(string username_or_token, string password = "")
-        {
-            if (username_or_token.Length == 32)
-            {
-                WSClient.Send(username_or_token);
-            }
-            
+            WebSocket ws = new WebSocket(scheme + host + sPort);
+            WSClient = ws;
+            await ws.OpenAsync();
+            return ws;
         }
     }
 }
