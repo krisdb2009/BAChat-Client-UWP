@@ -35,6 +35,8 @@ namespace BAChat
 
         public ApplicationDataContainer LocalSettings = ApplicationData.Current.LocalSettings;
 
+        public WebSocket webSocket;
+
         public MainPage()
         {
             InitializeComponent();
@@ -47,7 +49,7 @@ namespace BAChat
             titleBar.ButtonForegroundColor = Colors.White;
             Window.Current.SetTitleBar(TitleBar);
             loginTimer.Tick += LoginTimer_Tick;
-            loginTimer.Interval = new TimeSpan(0, 0, 1);
+            loginTimer.Interval = TimeSpan.FromMilliseconds(100);
             messageDialog.CloseButtonClick += MessageDialog_CloseButtonClick;
             if (LocalSettings.Values.ContainsKey("isLoggedIn") && (bool)LocalSettings.Values["isLoggedIn"])
             {
@@ -106,13 +108,16 @@ namespace BAChat
             ChatBox.Blocks.Add(paragraph);
         }
 
-        public void hideDialog()
+        public async void hideDialog()
         {
-            if (mDialogIsOpen)
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
-                messageDialog.Hide();
-                mDialogIsOpen = false;
-            }
+                if (mDialogIsOpen)
+                {
+                    messageDialog.Hide();
+                    mDialogIsOpen = false;
+                }
+            });
         }
 
         private void MessageDialog_CloseButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
@@ -122,22 +127,25 @@ namespace BAChat
 
         public async void showDialog(string title, string message, bool showOK = true)
         {
-            messageDialog.RequestedTheme = RequestedTheme;
-            messageDialog.Title = title;
-            messageDialog.Content = message;
-            if (showOK)
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
             {
-                messageDialog.CloseButtonText = "Ok";
-            }
-            else
-            {
-                messageDialog.CloseButtonText = "";
-            }
-            if (!mDialogIsOpen)
-            {
-                mDialogIsOpen = true;
-                await messageDialog.ShowAsync();
-            }
+                messageDialog.RequestedTheme = RequestedTheme;
+                messageDialog.Title = title;
+                messageDialog.Content = message;
+                if (showOK)
+                {
+                    messageDialog.CloseButtonText = "Ok";
+                }
+                else
+                {
+                    messageDialog.CloseButtonText = "";
+                }
+                if (!mDialogIsOpen)
+                {
+                    mDialogIsOpen = true;
+                    await messageDialog.ShowAsync();
+                }
+            });
         }
 
         public async void setTitle(string title = "")
@@ -177,15 +185,20 @@ namespace BAChat
 
         private async void LoginTimer_Tick(object sender, object e)
         {
-            string token = await LoginWebView.InvokeScriptAsync("authToken", null);
+            string token = "";
+            try
+            {
+                token = await LoginWebView.InvokeScriptAsync("authToken", null);
+            } catch (Exception) { }
             if (token.Length == 32)
             {
                 loginTimer.Stop();
                 loginSessionID = token;
                 LoginWebView.Visibility = Visibility.Collapsed;
                 LocalSettings.Values["isLoggedIn"] = true;
-                WebSocket ws = await WebSocketClient.Connect("localhost", false, 55475);
-                ws.MessageReceived += WSClient_MessageReceived;
+                showDialog("Connecting...", "Connecting to server...", false);
+                webSocket = await WebSocketClient.Connect("localhost", false, 55475);
+                webSocket.MessageReceived += WSClient_MessageReceived;
             }
         }
 
@@ -193,6 +206,7 @@ namespace BAChat
         {
             if (Protocol.Receive.Login(e.Message, out string token))
             {
+                showDialog("Authenticating...", "Logging on to server...", false);
                 if (token != null)
                 {
                     loginSessionID = token;
@@ -210,6 +224,7 @@ namespace BAChat
                 {
                     setTitle(channel + " - " + initUsername);
                 }
+                hideDialog();
             }
             else if (Protocol.Receive.Join(e.Message))
             {
@@ -223,6 +238,7 @@ namespace BAChat
 
         public async void logout()
         {
+            await webSocket.CloseAsync();
             showDialog("Login Session", "Sending logoff command to server...", false);
             await HTTP_post_data(HTTPApiBaseURL + "AUTH/", "AUTH=" + loginSessionID + "&logout");
             showDialog("Login Session", "Confirming logoff...", false);
