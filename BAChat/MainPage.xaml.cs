@@ -35,6 +35,8 @@ namespace BAChat
 
         public ApplicationDataContainer LocalSettings = ApplicationData.Current.LocalSettings;
 
+        public static string ChannelName = "";
+
         public WebSocket webSocket;
 
         public MainPage()
@@ -66,6 +68,14 @@ namespace BAChat
             else
             {
                 RequestedTheme = ElementTheme.Dark;
+            }
+            if (LocalSettings.Values.ContainsKey("channel") && (string)LocalSettings.Values["channel"] != "")
+            {
+                ChannelName = (string)LocalSettings.Values["channel"];
+            }
+            else
+            {
+                ChannelName = "BAChat";
             }
         }
 
